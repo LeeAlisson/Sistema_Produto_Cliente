@@ -41,6 +41,26 @@ foreach (array_filter(array_map('trim', explode(';', $sql))) as $statement) {
     }
 }
 
+$indexes = [
+    'CREATE INDEX idx_c00_nome ON c00_cliente (c00_nome)',
+    'CREATE INDEX idx_c00_cnpj ON c00_cliente (c00_cnpj)',
+    'CREATE INDEX idx_p00_descricao ON p00_produto (p00_descricao)',
+    'CREATE INDEX idx_r00_cliente ON r00_produto_cliente (r00_cliente_codigo)',
+];
+
+foreach ($indexes as $indexSql) {
+    try {
+        $pdo->exec($indexSql);
+    } catch (PDOException $e) {
+        if (!str_contains($e->getMessage(), 'Duplicate') && !str_contains($e->getMessage(), 'already exists')) {
+            echo "Aviso: " . $e->getMessage() . "\n";
+        }
+    }
+}
+
+$pdo->exec("UPDATE c00_cliente SET c00_cnpj = '52998224725' WHERE c00_codigo = 'CLI001' AND c00_cnpj IN ('12345678901', '52998224725')");
+$pdo->exec("UPDATE c00_cliente SET c00_cnpj = '11222333000181' WHERE c00_codigo = 'CLI002' AND (c00_cnpj = '12345678000199' OR c00_cnpj = '11222333000181')");
+
 $appUrl = \App\Config::url() ?: 'http://localhost:8080';
 echo "\nSetup concluído.\n";
 echo "URL: {$appUrl}/login\n";

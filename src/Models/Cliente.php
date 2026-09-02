@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Database;
+use App\Support\Documento;
 use PDO;
 
 class Cliente
@@ -82,6 +83,23 @@ class Cliente
     ];
   }
 
+  public static function searchAll(?string $search): array
+  {
+    $pdo = Database::getConnection();
+    $where = '';
+    $params = [];
+
+    if ($search !== null && $search !== '') {
+      $where = 'WHERE c00_codigo LIKE ? OR c00_nome LIKE ?';
+      $term = '%' . $search . '%';
+      $params = [$term, $term];
+    }
+
+    $stmt = $pdo->prepare('SELECT * FROM c00_cliente' . ($where ? ' ' . $where : '') . ' ORDER BY c00_nome');
+    $stmt->execute($params);
+    return $stmt->fetchAll();
+  }
+
   public static function find(string $codigo): ?array
   {
     $pdo = Database::getConnection();
@@ -155,6 +173,7 @@ class Cliente
 
   public static function dataParaBanco(string $data): string
   {
+    // DatePicker envia DD/MM/AAAA; o banco pede AAAAMMDD.
     if (preg_match('/^(\d{2})\/(\d{2})\/(\d{4})$/', $data, $m)) {
       return $m[3] . $m[2] . $m[1];
     }
@@ -171,6 +190,15 @@ class Cliente
       'J' => 'CNPJ',
       default => 'CNPJ / CPF',
     };
+  }
+
+  public static function formatarDocumento(?string $documento, ?string $tipoPessoa = null): string
+  {
+    if ($documento === null || $documento === '') {
+      return '—';
+    }
+
+    return Documento::format($documento, $tipoPessoa) ?: '—';
   }
 
   public static function isEstadoValido(string $uf): bool

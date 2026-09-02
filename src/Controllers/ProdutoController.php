@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Auth;
 use App\Exceptions\BusinessException;
 use App\Services\ProdutoService;
+use App\Support\CsvResponse;
 use App\View;
 
 class ProdutoController
@@ -27,6 +28,31 @@ class ProdutoController
       'pagination' => $result['pagination'],
       'search' => $search,
     ]);
+  }
+
+  public function export(): void
+  {
+    $search = trim($_GET['q'] ?? '');
+    $produtos = $this->service->listForExport($search !== '' ? $search : null);
+
+    $rows = [];
+    foreach ($produtos as $p) {
+      $rows[] = [
+        $p['p00_codigo'],
+        $p['p00_descricao'],
+        number_format((float) $p['p00_preco'], 2, ',', '.'),
+        number_format((float) $p['p00_imposto'], 2, ',', '.') . '%',
+        number_format((float) $p['valor_imposto'], 2, ',', '.'),
+      ];
+    }
+
+    CsvResponse::send('produtos.csv', [
+      'Código',
+      'Descrição',
+      'Preço',
+      'Imposto (%)',
+      'Valor do Imposto',
+    ], $rows);
   }
 
   public function create(): void

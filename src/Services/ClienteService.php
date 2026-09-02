@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Exceptions\BusinessException;
 use App\Models\Cliente;
+use App\Models\Produto;
 use App\Security;
 use App\Support\Pagination;
 use App\Validators\ClienteValidator;
@@ -83,6 +84,7 @@ class ClienteService
   {
     $this->findOrFail($codigo);
 
+    // Mesma regra do produto: vínculo N:N impede exclusão.
     if (Cliente::temAssociacoes($codigo)) {
       throw new BusinessException(
         'Não é possível excluir: este cliente possui associações com produtos.'
@@ -96,7 +98,17 @@ class ClienteService
   public function getProdutosAssociados(string $codigo): array
   {
     $this->findOrFail($codigo);
-    return Cliente::getProdutosAssociados($codigo);
+    $produtos = Cliente::getProdutosAssociados($codigo);
+
+    foreach ($produtos as &$produto) {
+      $produto['valor_imposto'] = Produto::calcularValorImposto(
+        (float) $produto['p00_preco'],
+        (float) $produto['p00_imposto']
+      );
+    }
+    unset($produto);
+
+    return $produtos;
   }
 
   public function validateForm(array $input, bool $isCreate): array
@@ -113,5 +125,10 @@ class ClienteService
   public function listAll(): array
   {
     return Cliente::all();
+  }
+
+  public function listForExport(?string $search): array
+  {
+    return Cliente::searchAll($search);
   }
 }

@@ -38,7 +38,7 @@
           <?php else: ?>
             <dt>Documento</dt>
           <?php endif; ?>
-          <dd><?= App\View::escape($cliente['c00_cnpj'] ?? '—') ?></dd>
+          <dd><?= App\View::escape(App\Models\Cliente::formatarDocumento($cliente['c00_cnpj'] ?? '', $cliente['c00_pessoa'])) ?></dd>
           <dt>Estado</dt>
           <dd><?= App\View::escape($cliente['c00_estado']) ?></dd>
           <dt>Data de Nascimento</dt>
@@ -69,6 +69,9 @@
                 <small>
                   <?= App\View::escape($p['p00_codigo']) ?> —
                   R$ <?= number_format((float) $p['p00_preco'], 2, ',', '.') ?>
+                  <?php if (isset($p['valor_imposto'])): ?>
+                    — imposto R$ <?= number_format((float) $p['valor_imposto'], 2, ',', '.') ?>
+                  <?php endif; ?>
                 </small>
               </div>
               <a href="<?= App\View::url('produtos.show', ['codigo' => $p['p00_codigo']]) ?>" class="btn-icon">

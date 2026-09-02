@@ -4,6 +4,9 @@
     <p class="page-subtitle">Cadastro e gestão de produtos</p>
   </div>
   <div class="page-header-actions">
+    <a href="<?= App\View::url('produtos.export') ?><?= !empty($search) ? '?q=' . rawurlencode($search) : '' ?>" class="btn-ghost">
+      <i class="bi bi-download"></i> Exportar CSV
+    </a>
     <a href="<?= App\View::url('produtos.create') ?>" class="btn-accent">
       <i class="bi bi-plus-lg"></i> Novo produto
     </a>

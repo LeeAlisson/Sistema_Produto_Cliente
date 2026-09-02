@@ -32,7 +32,9 @@ class ProdutoApiController
 
       JsonResponse::success([
         'produto' => $produto,
+        'valor_imposto' => $produto['valor_imposto'],
         'clientes' => $clientes,
+        'clientes_associados' => $clientes,
       ]);
     } catch (BusinessException $e) {
       JsonResponse::error(404, $e->getMessage());

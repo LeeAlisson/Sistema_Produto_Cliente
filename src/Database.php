@@ -27,6 +27,7 @@ class Database
           PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
           PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         ]);
+        self::$connection->exec("SET time_zone = '-03:00'"); // America/Sao_Paulo
       } catch (PDOException $e) {
         $message = Config::isDebug()
           ? 'Erro de conexão com o banco: ' . $e->getMessage()
@@ -37,5 +38,22 @@ class Database
     }
 
     return self::$connection;
+  }
+
+  public static function transaction(callable $callback): mixed
+  {
+    $pdo = self::getConnection();
+    $pdo->beginTransaction();
+
+    try {
+      $result = $callback($pdo);
+      $pdo->commit();
+      return $result;
+    } catch (\Throwable $e) {
+      if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+      }
+      throw $e;
+    }
   }
 }

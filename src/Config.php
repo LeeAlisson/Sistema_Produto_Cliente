@@ -34,6 +34,16 @@ class Config
 
   public static function get(string $key, mixed $default = null): mixed
   {
+    // Variáveis do processo (Docker) prevalecem sobre o arquivo .env.
+    if (array_key_exists($key, $_ENV) && $_ENV[$key] !== null) {
+      return $_ENV[$key];
+    }
+
+    $fromProcess = getenv($key);
+    if ($fromProcess !== false) {
+      return $fromProcess;
+    }
+
     return self::$values[$key] ?? $default;
   }
 

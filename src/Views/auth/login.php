@@ -1,6 +1,6 @@
 <div class="login-form-header">
-  <h2>Bem-vindo</h2>
-  <p>Entre com suas credenciais para acessar o sistema</p>
+  <h2>Entrar</h2>
+  <p>Demonstração do teste técnico — produtos, clientes e associação N:N.</p>
 </div>
 
 <?php if (!empty($error)): ?>
@@ -39,6 +39,10 @@
     <span>Entrar</span>
     <i class="bi bi-arrow-right"></i>
   </button>
+
+  <p class="login-demo">
+    Acesso de avaliação: <strong>admin</strong> / <strong>admin123</strong>
+  </p>
 </form>
 
 <script>

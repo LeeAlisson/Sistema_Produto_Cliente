@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   initConfirmModal();
   initFormModals();
+  initDocumentoField();
 
   const toggle = document.getElementById('sidebarToggle');
   const sidebar = document.getElementById('sidebar');
@@ -29,6 +30,79 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 });
+
+function onlyDigits(value) {
+  return (value || '').replace(/\D+/g, '');
+}
+
+function formatCpf(digits) {
+  return digits
+    .slice(0, 11)
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+}
+
+function formatCnpj(digits) {
+  return digits
+    .slice(0, 14)
+    .replace(/(\d{2})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1/$2')
+    .replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+}
+
+function applyDocumentoMask(input, tipo) {
+  const digits = onlyDigits(input.value);
+  if (tipo === 'J') {
+    input.value = formatCnpj(digits);
+    input.maxLength = 18;
+  } else if (tipo === 'F') {
+    input.value = formatCpf(digits);
+    input.maxLength = 14;
+  } else if (digits.length > 11) {
+    input.value = formatCnpj(digits);
+    input.maxLength = 18;
+  } else {
+    input.value = formatCpf(digits);
+    input.maxLength = 18;
+  }
+}
+
+function initDocumentoField() {
+  const tipoSelect = document.getElementById('c00_pessoa');
+  const docInput = document.getElementById('c00_documento');
+  const docLabel = document.getElementById('label-documento');
+  const docRequired = document.getElementById('doc-required');
+  if (!tipoSelect || !docInput) return;
+
+  function atualizarDocumento() {
+    const tipo = tipoSelect.value;
+    if (tipo === 'F') {
+      if (docLabel) docLabel.textContent = 'CPF';
+      docInput.placeholder = '000.000.000-00';
+      docInput.required = true;
+      if (docRequired) docRequired.style.display = '';
+    } else if (tipo === 'J') {
+      if (docLabel) docLabel.textContent = 'CNPJ';
+      docInput.placeholder = '00.000.000/0000-00';
+      docInput.required = true;
+      if (docRequired) docRequired.style.display = '';
+    } else {
+      if (docLabel) docLabel.textContent = 'CNPJ / CPF';
+      docInput.placeholder = 'Opcional';
+      docInput.required = false;
+      if (docRequired) docRequired.style.display = 'none';
+    }
+    applyDocumentoMask(docInput, tipo);
+  }
+
+  tipoSelect.addEventListener('change', atualizarDocumento);
+  docInput.addEventListener('input', function() {
+    applyDocumentoMask(docInput, tipoSelect.value);
+  });
+  atualizarDocumento();
+}
 
 function initConfirmModal() {
   const modal = document.getElementById('appConfirmModal');

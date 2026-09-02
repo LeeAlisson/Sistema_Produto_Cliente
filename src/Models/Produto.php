@@ -46,6 +46,23 @@ class Produto
     ];
   }
 
+  public static function searchAll(?string $search): array
+  {
+    $pdo = Database::getConnection();
+    $where = '';
+    $params = [];
+
+    if ($search !== null && $search !== '') {
+      $where = 'WHERE p00_codigo LIKE ? OR p00_descricao LIKE ?';
+      $term = '%' . $search . '%';
+      $params = [$term, $term];
+    }
+
+    $stmt = $pdo->prepare('SELECT * FROM p00_produto' . ($where ? ' ' . $where : '') . ' ORDER BY p00_codigo');
+    $stmt->execute($params);
+    return $stmt->fetchAll();
+  }
+
   public static function find(string $codigo): ?array
   {
     $pdo = Database::getConnection();
@@ -105,6 +122,7 @@ class Produto
 
   public static function calcularValorImposto(float $preco, float $impostoPercentual): float
   {
+    // Campo virtual — não há coluna; p00_imposto é o percentual.
     return round($preco * ($impostoPercentual / 100), 2);
   }
 

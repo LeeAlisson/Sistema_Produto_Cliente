@@ -4,6 +4,9 @@
     <p class="page-subtitle">Cadastro e gestão de clientes</p>
   </div>
   <div class="page-header-actions">
+    <a href="<?= App\View::url('clientes.export') ?><?= !empty($search) ? '?q=' . rawurlencode($search) : '' ?>" class="btn-ghost">
+      <i class="bi bi-download"></i> Exportar CSV
+    </a>
     <a href="<?= App\View::url('clientes.create') ?>" class="btn-accent">
       <i class="bi bi-plus-lg"></i> Novo cliente
     </a>
@@ -53,7 +56,7 @@
                   <?= App\View::escape(App\Models\Cliente::TIPOS_PESSOA[$c['c00_pessoa']] ?? $c['c00_pessoa']) ?>
                 </span>
               </td>
-              <td><?= App\View::escape($c['c00_cnpj'] ?? '—') ?></td>
+              <td><?= App\View::escape(App\Models\Cliente::formatarDocumento($c['c00_cnpj'] ?? '', $c['c00_pessoa'])) ?></td>
               <td><?= App\View::escape($c['c00_estado']) ?></td>
               <td><?= App\View::escape(App\Models\Cliente::formatarDataExibicao($c['c00_data_nascimento'])) ?></td>
               <td class="text-end">

@@ -4,6 +4,8 @@ CREATE DATABASE IF NOT EXISTS produto_cliente
 
 USE produto_cliente;
 
+-- c00_cnpj guarda CPF ou CNPJ (só dígitos). PF = 11, PJ = 14.
+-- c00_data_nascimento: AAAAMMDD, sem separador.
 CREATE TABLE IF NOT EXISTS c00_cliente (
     c00_codigo CHAR(6) NOT NULL,
     c00_nome VARCHAR(60) NOT NULL,
@@ -12,17 +14,22 @@ CREATE TABLE IF NOT EXISTS c00_cliente (
     c00_estado CHAR(2) NOT NULL,
     c00_data_nascimento CHAR(8) NOT NULL,
     PRIMARY KEY (c00_codigo),
+    INDEX idx_c00_nome (c00_nome),
+    INDEX idx_c00_cnpj (c00_cnpj),
     CONSTRAINT chk_c00_pessoa CHECK (c00_pessoa IN ('J', 'F', 'O'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- p00_imposto é percentual. O valor em reais é calculado na aplicação (preço × %).
 CREATE TABLE IF NOT EXISTS p00_produto (
     p00_codigo CHAR(15) NOT NULL,
     p00_descricao VARCHAR(45) NOT NULL,
     p00_preco DECIMAL(10, 2) NOT NULL,
     p00_imposto DECIMAL(10, 2) NOT NULL,
-    PRIMARY KEY (p00_codigo)
+    PRIMARY KEY (p00_codigo),
+    INDEX idx_p00_descricao (p00_descricao)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- N:N. PK composta evita o mesmo par duas vezes.
 CREATE TABLE IF NOT EXISTS r00_produto_cliente (
     r00_produto_codigo CHAR(15) NOT NULL,
     r00_cliente_codigo CHAR(6) NOT NULL,
@@ -32,7 +39,8 @@ CREATE TABLE IF NOT EXISTS r00_produto_cliente (
         ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_r00_cliente
         FOREIGN KEY (r00_cliente_codigo) REFERENCES c00_cliente (c00_codigo)
-        ON DELETE CASCADE ON UPDATE CASCADE
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    INDEX idx_r00_cliente (r00_cliente_codigo)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS s00_usuario (
@@ -68,8 +76,8 @@ INSERT INTO p00_produto (p00_codigo, p00_descricao, p00_preco, p00_imposto) VALU
     ('PROD003', 'Teclado Mecânico RGB', 580.00, 15.00);
 
 INSERT INTO c00_cliente (c00_codigo, c00_nome, c00_pessoa, c00_cnpj, c00_estado, c00_data_nascimento) VALUES
-    ('CLI001', 'João Silva Santos', 'F', '12345678901', 'SP', '19850315'),
-    ('CLI002', 'Tech Solutions Ltda', 'J', '12345678000199', 'RJ', '20100101'),
+    ('CLI001', 'João Silva Santos', 'F', '52998224725', 'SP', '19850315'),
+    ('CLI002', 'Tech Solutions Ltda', 'J', '11222333000181', 'RJ', '20100101'),
     ('CLI003', 'Maria Oliveira', 'F', '98765432100', 'MG', '19920722');
 
 INSERT INTO r00_produto_cliente (r00_produto_codigo, r00_cliente_codigo) VALUES

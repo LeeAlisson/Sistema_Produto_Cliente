@@ -11,8 +11,8 @@ class Associacao
   {
     $pdo = Database::getConnection();
     $stmt = $pdo->prepare(
-      'INSERT IGNORE INTO r00_produto_cliente (r00_produto_codigo, r00_cliente_codigo) VALUES (?, ?)'
-    );
+      'INSERT INTO r00_produto_cliente (r00_produto_codigo, r00_cliente_codigo) VALUES (?, ?)'
+    ); // PK impede duplicata; o service trata 23000
     return $stmt->execute([$produtoCodigo, $clienteCodigo]);
   }
 

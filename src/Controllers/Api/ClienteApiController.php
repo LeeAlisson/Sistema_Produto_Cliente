@@ -33,6 +33,7 @@ class ClienteApiController
       JsonResponse::success([
         'cliente' => $cliente,
         'produtos' => $produtos,
+        'produtos_associados' => $produtos,
       ]);
     } catch (BusinessException $e) {
       JsonResponse::error(404, $e->getMessage());

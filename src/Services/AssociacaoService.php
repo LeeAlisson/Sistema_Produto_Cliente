@@ -2,11 +2,13 @@
 
 namespace App\Services;
 
+use App\Database;
 use App\Exceptions\BusinessException;
 use App\Models\Associacao;
 use App\Models\Cliente;
 use App\Models\Produto;
 use App\Security;
+use PDOException;
 
 class AssociacaoService
 {
@@ -32,16 +34,26 @@ class AssociacaoService
       throw new BusinessException('Produto ou cliente não encontrado.');
     }
 
-    if (Associacao::exists($produtoCodigo, $clienteCodigo)) {
-      throw new BusinessException('Esta associação já existe.');
+    try {
+      // Transação cobre o INSERT e o log. Duplicata na PK vira erro de negócio.
+      Database::transaction(function () use ($produtoCodigo, $clienteCodigo): void {
+        if (Associacao::exists($produtoCodigo, $clienteCodigo)) {
+          throw new BusinessException('Esta associação já existe.');
+        }
+
+        Associacao::associar($produtoCodigo, $clienteCodigo);
+
+        AuditLogService::log(AuditLogService::ACTION_ASSOCIATE, 'associacao', null, [
+          'produto_codigo' => $produtoCodigo,
+          'cliente_codigo' => $clienteCodigo,
+        ]);
+      });
+    } catch (PDOException $e) {
+      if ($this->isDuplicateKey($e)) {
+        throw new BusinessException('Esta associação já existe.');
+      }
+      throw $e;
     }
-
-    Associacao::associar($produtoCodigo, $clienteCodigo);
-
-    AuditLogService::log(AuditLogService::ACTION_ASSOCIATE, 'associacao', null, [
-      'produto_codigo' => $produtoCodigo,
-      'cliente_codigo' => $clienteCodigo,
-    ]);
   }
 
   public function desassociar(string $produtoCodigo, string $clienteCodigo): void
@@ -57,12 +69,14 @@ class AssociacaoService
       throw new BusinessException('Associação inválida.');
     }
 
-    Associacao::desassociar($produtoCodigo, $clienteCodigo);
+    Database::transaction(function () use ($produtoCodigo, $clienteCodigo): void {
+      Associacao::desassociar($produtoCodigo, $clienteCodigo);
 
-    AuditLogService::log(AuditLogService::ACTION_DISASSOCIATE, 'associacao', null, [
-      'produto_codigo' => $produtoCodigo,
-      'cliente_codigo' => $clienteCodigo,
-    ]);
+      AuditLogService::log(AuditLogService::ACTION_DISASSOCIATE, 'associacao', null, [
+        'produto_codigo' => $produtoCodigo,
+        'cliente_codigo' => $clienteCodigo,
+      ]);
+    });
   }
 
   public function listProdutos(): array
@@ -73,5 +87,10 @@ class AssociacaoService
   public function listClientes(): array
   {
     return Cliente::all();
+  }
+
+  private function isDuplicateKey(PDOException $e): bool
+  {
+    return $e->getCode() === '23000' || str_contains($e->getMessage(), 'Duplicate');
   }
 }

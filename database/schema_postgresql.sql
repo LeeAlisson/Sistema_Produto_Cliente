@@ -1,5 +1,4 @@
--- Versão PostgreSQL (conforme especificação original do teste)
--- Use este script se o ambiente utiliza PostgreSQL em vez de MySQL/XAMPP
+-- Referência PostgreSQL do enunciado. O app em Docker usa MySQL (schema.sql).
 
 CREATE TABLE IF NOT EXISTS c00_cliente (
     c00_codigo CHAR(6) NOT NULL,
@@ -12,6 +11,9 @@ CREATE TABLE IF NOT EXISTS c00_cliente (
     CONSTRAINT chk_c00_pessoa CHECK (c00_pessoa IN ('J', 'F', 'O'))
 );
 
+CREATE INDEX IF NOT EXISTS idx_c00_nome ON c00_cliente (c00_nome);
+CREATE INDEX IF NOT EXISTS idx_c00_cnpj ON c00_cliente (c00_cnpj);
+
 CREATE TABLE IF NOT EXISTS p00_produto (
     p00_codigo CHAR(15) NOT NULL,
     p00_descricao VARCHAR(45) NOT NULL,
@@ -19,6 +21,8 @@ CREATE TABLE IF NOT EXISTS p00_produto (
     p00_imposto NUMERIC(10, 2) NOT NULL,
     PRIMARY KEY (p00_codigo)
 );
+
+CREATE INDEX IF NOT EXISTS idx_p00_descricao ON p00_produto (p00_descricao);
 
 CREATE TABLE IF NOT EXISTS r00_produto_cliente (
     r00_produto_codigo CHAR(15) NOT NULL,
@@ -31,3 +35,5 @@ CREATE TABLE IF NOT EXISTS r00_produto_cliente (
         FOREIGN KEY (r00_cliente_codigo) REFERENCES c00_cliente (c00_codigo)
         ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+CREATE INDEX IF NOT EXISTS idx_r00_cliente ON r00_produto_cliente (r00_cliente_codigo);

@@ -21,8 +21,8 @@
         <div class="login-logo">
           <i class="bi bi-box-seam"></i>
         </div>
-        <h1>Produto x Cliente</h1>
-        <p>Gerencie produtos, clientes e associações com segurança e praticidade.</p>
+        <h1>Produto × Cliente</h1>
+        <p>Cadastro de produtos e clientes, com vínculo N:N, imposto virtual e regras de CPF/CNPJ.</p>
 
         <div class="login-features">
           <div class="login-feature">

@@ -1,8 +1,22 @@
 FROM php:8.2-cli
 
-RUN docker-php-ext-install pdo pdo_mysql
+ENV TZ=America/Sao_Paulo
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        libcurl4-openssl-dev \
+        unzip \
+        git \
+        tzdata \
+    && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
+    && echo $TZ > /etc/timezone \
+    && docker-php-ext-install pdo pdo_mysql curl \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+COPY docker/php.ini /usr/local/etc/php/conf.d/timezone.ini
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 WORKDIR /var/www/html
 
@@ -13,4 +27,4 @@ COPY . .
 
 EXPOSE 8080
 
-CMD ["php", "-S", "0.0.0.0:8080", "-t", "public", "public/router.php"]
+ENTRYPOINT ["entrypoint.sh"]

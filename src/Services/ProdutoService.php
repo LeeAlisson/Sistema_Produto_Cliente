@@ -97,6 +97,7 @@ class ProdutoService
   {
     $this->findOrFail($codigo);
 
+    // Não apaga produto que ainda tem cliente vinculado.
     if (Produto::temAssociacoes($codigo)) {
       throw new BusinessException(
         'Não é possível excluir: este produto possui associações com clientes.'
@@ -122,5 +123,20 @@ class ProdutoService
   public function normalizeForm(array $input): array
   {
     return $this->validator->normalize($input);
+  }
+
+  public function listForExport(?string $search): array
+  {
+    $items = Produto::searchAll($search);
+
+    foreach ($items as &$produto) {
+      $produto['valor_imposto'] = Produto::calcularValorImposto(
+        (float) $produto['p00_preco'],
+        (float) $produto['p00_imposto']
+      );
+    }
+    unset($produto);
+
+    return $items;
   }
 }

@@ -42,6 +42,7 @@ return function (Router $router) use (
   $router->post('/logout', 'logout', fn() => $authController->logout());
 
   $router->get('/produtos', 'produtos.index', fn() => $produtoController->index());
+  $router->get('/produtos/export', 'produtos.export', fn() => $produtoController->export());
   $router->get('/produtos/create', 'produtos.create', fn() => $produtoController->create());
   $router->post('/produtos', 'produtos.store', fn() => $produtoController->store());
   $router->get('/produtos/{codigo}', 'produtos.show', fn($p) => $produtoController->show($p['codigo']));
@@ -50,6 +51,7 @@ return function (Router $router) use (
   $router->post('/produtos/{codigo}/delete', 'produtos.delete', fn($p) => $produtoController->delete($p['codigo']));
 
   $router->get('/clientes', 'clientes.index', fn() => $clienteController->index());
+  $router->get('/clientes/export', 'clientes.export', fn() => $clienteController->export());
   $router->get('/clientes/create', 'clientes.create', fn() => $clienteController->create());
   $router->post('/clientes', 'clientes.store', fn() => $clienteController->store());
   $router->get('/clientes/{codigo}', 'clientes.show', fn($p) => $clienteController->show($p['codigo']));

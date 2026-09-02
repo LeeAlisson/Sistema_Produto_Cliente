@@ -8,12 +8,18 @@ class ProdutoValidator
   {
     $errors = [];
 
-    if ($isCreate && empty(trim($data['p00_codigo'] ?? ''))) {
+    $codigo = trim((string) ($data['p00_codigo'] ?? ''));
+    if ($isCreate && $codigo === '') {
       $errors[] = 'Código é obrigatório.';
+    } elseif ($isCreate && strlen($codigo) > 15) {
+      $errors[] = 'Código deve ter no máximo 15 caracteres.';
     }
 
-    if (empty(trim($data['p00_descricao'] ?? ''))) {
+    $descricao = trim((string) ($data['p00_descricao'] ?? ''));
+    if ($descricao === '') {
       $errors[] = 'Descrição é obrigatória.';
+    } elseif (strlen($descricao) > 45) {
+      $errors[] = 'Descrição deve ter no máximo 45 caracteres.';
     }
 
     if (!isset($data['p00_preco']) || $data['p00_preco'] === '') {

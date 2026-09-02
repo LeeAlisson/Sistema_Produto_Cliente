@@ -22,7 +22,10 @@
 
 <?php
 $tipoPessoa = $cliente['c00_pessoa'] ?? 'F';
-$documento = $cliente['c00_documento'] ?? ($cliente['c00_cnpj'] ?? '');
+$documentoBruto = $cliente['c00_documento'] ?? ($cliente['c00_cnpj'] ?? '');
+$documento = $documentoBruto !== ''
+  ? App\Support\Documento::format((string) $documentoBruto, $tipoPessoa)
+  : '';
 $estadoSelecionado = strtoupper($cliente['c00_estado'] ?? '');
 $dataExibicao = '';
 if (!empty($cliente['c00_data_nascimento'])) {
@@ -72,7 +75,8 @@ if (!empty($cliente['c00_data_nascimento'])) {
             <span class="text-danger" id="doc-required">*</span>
           </label>
           <input type="text" class="form-control" id="c00_documento" name="c00_documento"
-                 maxlength="18"
+                 maxlength="18" inputmode="numeric" autocomplete="off"
+                 data-documento-mask
                  value="<?= App\View::escape($documento) ?>">
         </div>
         <div class="col-md-3">
@@ -103,36 +107,3 @@ if (!empty($cliente['c00_data_nascimento'])) {
     </form>
   </div>
 </div>
-
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const tipoSelect = document.getElementById('c00_pessoa');
-    const docInput = document.getElementById('c00_documento');
-    const docLabel = document.getElementById('label-documento');
-    const docRequired = document.getElementById('doc-required');
-    if (!tipoSelect) return;
-
-    function atualizarDocumento() {
-      const tipo = tipoSelect.value;
-      if (tipo === 'F') {
-        docLabel.textContent = 'CPF';
-        docInput.placeholder = '000.000.000-00';
-        docInput.required = true;
-        docRequired.style.display = '';
-      } else if (tipo === 'J') {
-        docLabel.textContent = 'CNPJ';
-        docInput.placeholder = '00.000.000/0000-00';
-        docInput.required = true;
-        docRequired.style.display = '';
-      } else {
-        docLabel.textContent = 'CNPJ / CPF';
-        docInput.placeholder = 'Opcional';
-        docInput.required = false;
-        docRequired.style.display = 'none';
-      }
-    }
-
-    tipoSelect.addEventListener('change', atualizarDocumento);
-    atualizarDocumento();
-  });
-</script>

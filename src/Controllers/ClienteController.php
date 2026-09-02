@@ -4,7 +4,9 @@ namespace App\Controllers;
 
 use App\Auth;
 use App\Exceptions\BusinessException;
+use App\Models\Cliente;
 use App\Services\ClienteService;
+use App\Support\CsvResponse;
 use App\View;
 
 class ClienteController
@@ -27,6 +29,33 @@ class ClienteController
       'pagination' => $result['pagination'],
       'search' => $search,
     ]);
+  }
+
+  public function export(): void
+  {
+    $search = trim($_GET['q'] ?? '');
+    $clientes = $this->service->listForExport($search !== '' ? $search : null);
+
+    $rows = [];
+    foreach ($clientes as $c) {
+      $rows[] = [
+        $c['c00_codigo'],
+        $c['c00_nome'],
+        Cliente::TIPOS_PESSOA[$c['c00_pessoa']] ?? $c['c00_pessoa'],
+        Cliente::formatarDocumento($c['c00_cnpj'] ?? '', $c['c00_pessoa']),
+        $c['c00_estado'],
+        Cliente::formatarDataExibicao($c['c00_data_nascimento']),
+      ];
+    }
+
+    CsvResponse::send('clientes.csv', [
+      'Código',
+      'Nome',
+      'Tipo',
+      'Documento',
+      'UF',
+      'Nascimento',
+    ], $rows);
   }
 
   public function create(): void

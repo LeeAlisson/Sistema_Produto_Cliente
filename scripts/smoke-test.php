@@ -1,10 +1,8 @@
 <?php
 
 /**
- * Smoke test — banco, regras de negócio, HTTP e compatibilidade Apache.
- *
+ * Smoke test: banco, regras de negócio e HTTP.
  * Uso: php scripts/smoke-test.php [base_url]
- * Requer servidor rodando: php -S localhost:8080 -t public public/router.php
  */
 
 declare(strict_types=1);
@@ -170,6 +168,15 @@ if ($apiKey) {
     ($api['code'] === 200 && str_contains($api['body'], '"success":true'))
         ? ok('GET /api/produtos')
         : fail('GET /api/produtos', "HTTP {$api['code']}");
+
+    $detalhe = curlRequest($baseUrl . '/api/produtos/PROD001', $cookieJar, [
+        'headers' => ["X-API-Key: {$apiKey}"],
+    ]);
+    ($detalhe['code'] === 200
+        && str_contains($detalhe['body'], 'valor_imposto')
+        && str_contains($detalhe['body'], 'clientes_associados'))
+        ? ok('GET /api/produtos/PROD001 (imposto + clientes)')
+        : fail('GET /api/produtos/PROD001', "HTTP {$detalhe['code']}");
 } else {
     skip('API Key', 'API_KEY vazio');
 }
@@ -224,36 +231,27 @@ if ($csrf === '') {
     } else {
         fail('GET /produtos/PROD001', "HTTP {$show['code']}");
     }
+
+    $csv = curlRequest($baseUrl . '/produtos/export', $cookieJar);
+    ($csv['code'] === 200 && str_contains($csv['body'], 'Valor do Imposto'))
+        ? ok('GET /produtos/export')
+        : fail('GET /produtos/export', "HTTP {$csv['code']}");
 }
 
-echo "\n5. Apache / XAMPP\n";
-$xamppFound = false;
-foreach (['C:\\xampp', 'D:\\xampp'] as $p) {
-    if (is_dir($p)) {
-        $xamppFound = true;
-        break;
-    }
-}
+echo "\n5. Docker / timezone\n";
+date_default_timezone_get() === 'America/Sao_Paulo'
+    ? ok('PHP timezone America/Sao_Paulo')
+    : fail('PHP timezone', date_default_timezone_get());
 
-if ($xamppFound) {
-    ok('Diretório XAMPP encontrado');
-    if (is_file('C:\\xampp\\apache\\bin\\httpd.exe')) {
-        ok('httpd.exe presente');
-    } else {
-        skip('Apache XAMPP', 'httpd.exe não encontrado');
-    }
-} else {
-    skip('XAMPP instalado', 'não detectado — MySQL/PHP standalone OK');
-}
+$tz = Database::getConnection()->query('SELECT @@session.time_zone AS tz')->fetch();
+in_array($tz['tz'] ?? '', ['-03:00', 'America/Sao_Paulo'], true)
+    ? ok('MySQL time_zone -03:00')
+    : fail('MySQL time_zone', $tz['tz'] ?? 'vazio');
 
 $htaccess = $root . '/public/.htaccess';
 is_file($htaccess) && str_contains(file_get_contents($htaccess), 'RewriteRule')
     ? ok('.htaccess (rewrite → index.php)')
     : fail('.htaccess');
-
-is_file($root . '/docker/apache-vhost.conf')
-    ? ok('VirtualHost exemplo (docker/apache-vhost.conf)')
-    : fail('VirtualHost exemplo');
 
 echo "\n=== Resultado: {$passed} OK, {$failed} FAIL, {$skipped} SKIP ===\n";
 

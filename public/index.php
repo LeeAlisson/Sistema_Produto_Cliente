@@ -35,6 +35,7 @@ if (str_starts_with($matched['name'], 'preview.') && !Config::isDebug()) {
   exit;
 }
 
+// Login é público. API aceita sessão ou X-API-Key.
 $skipAuth = $router->isPublicRoute($matched['name'])
   || (Config::isDebug() && str_starts_with($matched['name'], 'preview.'));
 
