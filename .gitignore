@@ -1,0 +1,26 @@
+# Dependências
+/vendor/
+
+# Ambiente e segredos
+.env
+.env.local
+.env.*.local
+/config/database.local.php
+
+# PHPUnit / IDE / OS
+.phpunit.cache/
+.phpunit.result.cache
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Logs e temporários
+*.log
+/tmp/
+/temp/
+
+# Docker volumes locais (se criados na raiz)
+/db_data/

@@ -1,0 +1,35 @@
+# Apache — URLs limpas + segurança
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Bloqueia arquivos ocultos (.env, .git, etc.)
+    RewriteRule (^|/)\. - [F,L]
+
+    # Redireciona tudo ao front controller (exceto arquivos reais)
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [L,QSA]
+</IfModule>
+
+# Desabilita listagem de diretórios
+Options -Indexes
+
+# Bloqueia acesso a arquivos sensíveis
+<FilesMatch "\.(env|sql|md|log|ini|lock|example)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Headers de segurança
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    Header set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>
